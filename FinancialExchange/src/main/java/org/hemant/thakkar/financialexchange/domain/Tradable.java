@@ -1,4 +1,4 @@
-package org.hemant.thakkar.stockexchange;
+package org.hemant.thakkar.financialexchange.domain;
 
 import java.time.LocalDateTime;
 
