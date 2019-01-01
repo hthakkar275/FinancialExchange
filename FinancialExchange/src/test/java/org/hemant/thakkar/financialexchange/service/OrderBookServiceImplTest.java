@@ -1,0 +1,512 @@
+package org.hemant.thakkar.financialexchange.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigDecimal;
+import java.util.stream.IntStream;
+
+import org.hemant.thakkar.financialexchange.domain.Broker;
+import org.hemant.thakkar.financialexchange.domain.Equity;
+import org.hemant.thakkar.financialexchange.domain.Order;
+import org.hemant.thakkar.financialexchange.domain.OrderImpl;
+import org.hemant.thakkar.financialexchange.domain.OrderLongevity;
+import org.hemant.thakkar.financialexchange.domain.OrderReport;
+import org.hemant.thakkar.financialexchange.domain.OrderType;
+import org.hemant.thakkar.financialexchange.domain.Product;
+import org.hemant.thakkar.financialexchange.domain.Side;
+import org.junit.jupiter.api.Test;
+
+class OrderBookServiceImplTest {
+
+	@Test
+	void testMarketDayOrderUnmatched() {
+		Broker broker = new Broker();
+		broker.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+
+		Order buyOrder = new OrderImpl();
+		buyOrder.setParticipant(broker);
+		buyOrder.setType(OrderType.MARKET);
+		buyOrder.setLongevity(OrderLongevity.DAY);
+		buyOrder.setSide(Side.BUY);
+		buyOrder.setQuantity(300);
+		buyOrder.setProduct(equity);
+		
+		OrderBookService OrderBookService = new OrderBookServiceImpl(equity);
+		OrderReport orderReport = OrderBookService.processOrder(buyOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(0, orderReport.getTrades().size());
+		
+		// Confirm that the order is not in the order book
+		assertEquals(0, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(0, OrderBookService.volumeOnSide(Side.SELL));
+	}
+
+	@Test
+	void testMarketDayOrderFullyMatchedToSingleOrder() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
+		buyMarketOrder.setPrice(new BigDecimal("13.00"));
+		buyMarketOrder.setQuantity(130);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(1, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(0).getQuantity());
+		
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
+		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+	}
+
+	@Test
+	void testMarketDayOrderFullyMatchedToMultipleOrders() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
+		buyMarketOrder.setPrice(new BigDecimal("13.00"));
+		buyMarketOrder.setQuantity(160);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(2, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(1).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(0).getQuantity());
+		assertEquals(30, orderReport.getTrades().get(1).getQuantity());
+
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
+		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(100 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+	}
+
+	@Test
+	void testMarketDayOrderFullyMatchedWithPartialOrderOnBook() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
+		buyMarketOrder.setPrice(new BigDecimal("13.00"));
+		buyMarketOrder.setQuantity(90);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(1, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(90, orderReport.getTrades().get(0).getQuantity());
+		
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 +  40 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(170, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+	}
+	
+	@Test
+	void testMarketDayOrderMatchedAtMultiplePrices() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
+		buyMarketOrder.setPrice(new BigDecimal("13.00"));
+		buyMarketOrder.setQuantity(300);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(3, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(0).getQuantity());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(1).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(1).getQuantity());
+		assertTrue(new BigDecimal(14).compareTo(orderReport.getTrades().get(2).getPrice()) == 0);
+		assertEquals(40, orderReport.getTrades().get(2).getQuantity());
+		
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(100 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+	}
+
+	@Test
+	void testLimitOrderUnmatched() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		
+		// limit buy order for 9.00 will not match because the best
+		// offer/sell side is at 13.00. So this order should get booked
+		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
+		buyLimitOrder.setPrice(new BigDecimal("9.00"));
+		buyLimitOrder.setQuantity(90);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		assertNotNull(orderReport);
+		assertTrue(orderReport.isOrderInBook());
+		assertEquals(0, orderReport.getTrades().size());
+		
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(9).compareTo(OrderBookService.getWorstBid()) == 0);
+		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		
+		// Confirm the order book status
+		assertEquals(90 + 100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+	}
+
+	@Test
+	void testLimitOrderOrderFullyMatchedToOrderPrice() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		
+		// limit buy order for 9.00 will not match because the best
+		// offer/sell side is at 13.00. So this order should get booked
+		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
+		buyLimitOrder.setPrice(new BigDecimal("13.00"));
+		buyLimitOrder.setQuantity(130);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(1, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(0).getQuantity());
+		
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
+		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+	}
+
+	@Test
+	void testLimitDayOrderPartiallyMatchedWithUnmatchedQuantityBooked() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		
+		// limit buy order for 9.00 will not match because the best
+		// offer/sell side is at 13.00. So this order should get booked
+		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
+		buyLimitOrder.setPrice(new BigDecimal("13.00"));
+		buyLimitOrder.setQuantity(300);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		assertNotNull(orderReport);
+		assertTrue(orderReport.isOrderInBook());
+		assertEquals(2, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(0).getQuantity());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(1).getPrice()) == 0);
+		assertEquals(130, orderReport.getTrades().get(1).getQuantity());
+		
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(14).compareTo(OrderBookService.getBestOffer()) == 0);
+		
+		// Confirm the order book status
+		assertEquals(100 + 110 + 100 + 120 + 40, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(40, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(13)));
+
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+	}
+
+	@Test
+	public void testLimitDayOrderFullyMatchedWithPartialOrderOnBook() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		
+		// limit buy order for 9.00 will not match because the best
+		// offer/sell side is at 13.00. So this order should get booked
+		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
+		buyLimitOrder.setPrice(new BigDecimal("13.00"));
+		buyLimitOrder.setQuantity(90);
+		
+		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		assertNotNull(orderReport);
+		assertFalse(orderReport.isOrderInBook());
+		assertEquals(1, orderReport.getTrades().size());
+		assertTrue(new BigDecimal(13).compareTo(orderReport.getTrades().get(0).getPrice()) == 0);
+		assertEquals(90, orderReport.getTrades().get(0).getQuantity());
+		
+		// Need to probe trade for expected opposite order's details
+		// The best sell side should still have one more order at 13.00 with quantity of 130, 
+		// because only one of two such ordres at 13.00 is fully traded
+		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
+		
+		// Confirm the order book status
+		assertEquals(40 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(170, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+	}
+	
+	@Test
+	void testCancelOrder() {
+		Broker broker1 = new Broker();
+		broker1.setName("Hemant");
+		
+		Product equity = new Equity();
+		equity.setDescription("IBM Stock");
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = createOrderBook();
+		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
+		buyLimitOrder.setPrice(new BigDecimal("9.00"));
+		buyLimitOrder.setQuantity(90);
+		OrderBookService.processOrder(buyLimitOrder, false);
+		
+		// Confirm the order book status after new order is added
+		assertEquals(90 + 100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+
+		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		
+		OrderBookService.cancelOrder(buyLimitOrder.getId());
+		
+		// Confirm the order book status after new order is canceled
+		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+
+		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		
+		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+
+
+	}
+
+//	@Test
+//	void testModifyOrder() {
+//		fail("Not yet implemented");
+//	}
+//
+	private OrderBookService createOrderBook() {
+		
+		Equity equity = new Equity();
+		equity.setSymbol("IBM");
+		
+		OrderBookService OrderBookService = new OrderBookServiceImpl(equity);
+				
+		// Add 3 buy orders of price two of 10.00, 11.00, and 12.00 in varying price order
+		// Add an artificial 20 ms delay between each order for time priority test
+		IntStream.of(11, 10, 12, 10).mapToObj(i -> {
+			boolean slept = sleep(i);
+			Order buyOrder = null;
+			if (slept) {
+				buyOrder = createLimitDayOrder(equity, "broker" + i, Side.BUY);
+				buyOrder.setQuantity(i * 10);
+				buyOrder.setPrice(new BigDecimal(i));
+			}
+			return buyOrder;
+		}).forEach(o -> OrderBookService.processOrder(o, false));
+
+		// Add 4 sell orders of price two of 13.00, 14.00, 15.00, and 16.00 in varying price order
+		// Add an artificial 20 ms delay between each order for time priority test
+		IntStream.of(16, 14, 13, 15, 13).mapToObj(i -> {
+			boolean slept = sleep(i);
+			Order sellOrder = null;
+			if (slept) {
+				sellOrder = createLimitDayOrder(equity, "broker" + i, Side.SELL);
+				sellOrder.setQuantity(i * 10);
+				sellOrder.setPrice(new BigDecimal(i));
+			}
+			return sellOrder;
+		}).forEach(o -> OrderBookService.processOrder(o, false));
+
+		return OrderBookService;
+		
+	}
+	
+	private Order createLimitDayOrder(Product product, String brokerName, Side side) {
+		Order order = new OrderImpl();
+		order.setProduct(product);
+		Broker broker = new Broker();
+		broker.setName(brokerName);
+		order.setParticipant(broker);
+		order.setType(OrderType.LIMIT);
+		order.setLongevity(OrderLongevity.DAY);
+		order.setSide(side);
+		return order;
+	}
+	
+	private Order createMarketDayOrder(Product product, String brokerName, Side side) {
+		Order order = new OrderImpl();
+		order.setProduct(product);
+		Broker broker = new Broker();
+		broker.setName(brokerName);
+		order.setParticipant(broker);
+		order.setType(OrderType.MARKET);
+		order.setLongevity(OrderLongevity.DAY);
+		order.setSide(side);
+		return order;
+	}
+
+	private boolean sleep(int sleepTime) {
+		boolean result = true;
+		try {
+			Thread.sleep(sleepTime);
+		} catch (Exception e) {
+			result = false;
+		}
+		return result;
+	}
+}
