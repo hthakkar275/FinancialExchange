@@ -11,7 +11,7 @@ import org.hemant.thakkar.financialexchange.domain.Trade;
 
 
 
-public interface OrderBook {
+public interface OrderBookService {
 	void reset();
 
 	OrderReport processOrder(Order order, boolean verbose);
