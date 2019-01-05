@@ -38,15 +38,15 @@ class OrderBookServiceImplTest {
 		buyOrder.setQuantity(300);
 		buyOrder.setProduct(equity);
 		
-		OrderBookService OrderBookService = new OrderBookServiceImpl(equity);
-		OrderReport orderReport = OrderBookService.processOrder(buyOrder, true);
+		OrderBook orderBook = new OrderBookImpl(equity);
+		OrderReport orderReport = orderBook.processOrder(buyOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(0, orderReport.getTrades().size());
 		
 		// Confirm that the order is not in the order book
-		assertEquals(0, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(0, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(0, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(0, orderBook.volumeOnSide(Side.SELL));
 	}
 
 	@Test
@@ -58,12 +58,12 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(130);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -73,21 +73,21 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
-		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertTrue(new BigDecimal(13).compareTo(orderBook.getBestOffer()) == 0);
+		assertEquals(130, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(130, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 	}
 
@@ -100,12 +100,12 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(160);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(2, orderReport.getTrades().size());
@@ -117,21 +117,21 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
-		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertTrue(new BigDecimal(13).compareTo(orderBook.getBestOffer()) == 0);
+		assertEquals(100, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(100 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(100 + 140 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(100, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 	}
 
@@ -144,12 +144,12 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(90);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -158,17 +158,17 @@ class OrderBookServiceImplTest {
 		
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 +  40 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 +  40 + 140 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(170, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(170, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 	}
 	
@@ -181,12 +181,12 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		Order buyMarketOrder= createMarketDayOrder(equity, "Hemant", Side.BUY);
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(300);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyMarketOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(3, orderReport.getTrades().size());
@@ -199,16 +199,16 @@ class OrderBookServiceImplTest {
 		
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(100 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(100 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(100, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(100, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 	}
 
@@ -221,7 +221,7 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		
 		// limit buy order for 9.00 will not match because the best
 		// offer/sell side is at 13.00. So this order should get booked
@@ -229,7 +229,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("9.00"));
 		buyLimitOrder.setQuantity(90);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertTrue(orderReport.isOrderInBook());
 		assertEquals(0, orderReport.getTrades().size());
@@ -237,22 +237,22 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(9).compareTo(OrderBookService.getWorstBid()) == 0);
-		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		assertTrue(new BigDecimal(9).compareTo(orderBook.getWorstBid()) == 0);
+		assertEquals(90, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
 		
 		// Confirm the order book status
-		assertEquals(90 + 100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(90 + 100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(90, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(260, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 	}
 
 	@Test
@@ -264,7 +264,7 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		
 		// limit buy order for 9.00 will not match because the best
 		// offer/sell side is at 13.00. So this order should get booked
@@ -272,7 +272,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(130);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -282,21 +282,21 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
-		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertTrue(new BigDecimal(13).compareTo(orderBook.getBestOffer()) == 0);
+		assertEquals(130, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 + 140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(130, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(130, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 	}
 
 	@Test
@@ -308,7 +308,7 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		
 		// limit buy order for 9.00 will not match because the best
 		// offer/sell side is at 13.00. So this order should get booked
@@ -316,7 +316,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(300);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertTrue(orderReport.isOrderInBook());
 		assertEquals(2, orderReport.getTrades().size());
@@ -328,20 +328,20 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(14).compareTo(OrderBookService.getBestOffer()) == 0);
+		assertTrue(new BigDecimal(14).compareTo(orderBook.getBestOffer()) == 0);
 		
 		// Confirm the order book status
-		assertEquals(100 + 110 + 100 + 120 + 40, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(140 + 150 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120 + 40, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(140 + 150 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
-		assertEquals(40, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(13)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(40, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(13)));
 
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 	}
 
@@ -354,7 +354,7 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		
 		// limit buy order for 9.00 will not match because the best
 		// offer/sell side is at 13.00. So this order should get booked
@@ -362,7 +362,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(90);
 		
-		OrderReport orderReport = OrderBookService.processOrder(buyLimitOrder, true);
+		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -372,19 +372,19 @@ class OrderBookServiceImplTest {
 		// Need to probe trade for expected opposite order's details
 		// The best sell side should still have one more order at 13.00 with quantity of 130, 
 		// because only one of two such ordres at 13.00 is fully traded
-		assertTrue(new BigDecimal(13).compareTo(OrderBookService.getBestOffer()) == 0);
+		assertTrue(new BigDecimal(13).compareTo(orderBook.getBestOffer()) == 0);
 		
 		// Confirm the order book status
-		assertEquals(40 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(40 + 140 + 150 + 130 + 160, orderBook.volumeOnSide(Side.SELL));
 		
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(170, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(170, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 	}
 	
 	@Test
@@ -396,40 +396,40 @@ class OrderBookServiceImplTest {
 		equity.setDescription("IBM Stock");
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = createOrderBook();
+		OrderBook orderBook = createOrderBook();
 		Order buyLimitOrder= createLimitDayOrder(equity, "Hemant", Side.BUY);
 		buyLimitOrder.setPrice(new BigDecimal("9.00"));
 		buyLimitOrder.setQuantity(90);
-		OrderBookService.processOrder(buyLimitOrder, false);
+		orderBook.processOrder(buyLimitOrder, false);
 		
 		// Confirm the order book status after new order is added
-		assertEquals(90 + 100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(90 + 100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, orderBook.volumeOnSide(Side.SELL));
 
-		assertEquals(90, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(90, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(9)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(260, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 		
-		OrderBookService.cancelOrder(buyLimitOrder.getId());
+		orderBook.cancelOrder(buyLimitOrder.getId());
 		
 		// Confirm the order book status after new order is canceled
-		assertEquals(100 + 110 + 100 + 120, OrderBookService.volumeOnSide(Side.BUY));
-		assertEquals(130 + 140 + 150 + 130 + 160, OrderBookService.volumeOnSide(Side.SELL));
+		assertEquals(100 + 110 + 100 + 120, orderBook.volumeOnSide(Side.BUY));
+		assertEquals(130 + 140 + 150 + 130 + 160, orderBook.volumeOnSide(Side.SELL));
 
-		assertEquals(200, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
-		assertEquals(110, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
-		assertEquals(120, OrderBookService.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
+		assertEquals(200, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(10)));
+		assertEquals(110, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(11)));
+		assertEquals(120, orderBook.getVolumeAtPrice(Side.BUY, new BigDecimal(12)));
 		
-		assertEquals(260, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
-		assertEquals(140, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
-		assertEquals(150, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
-		assertEquals(160, OrderBookService.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
+		assertEquals(260, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(13)));
+		assertEquals(140, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(14)));
+		assertEquals(150, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(15)));
+		assertEquals(160, orderBook.getVolumeAtPrice(Side.SELL, new BigDecimal(16)));
 
 
 	}
@@ -439,12 +439,12 @@ class OrderBookServiceImplTest {
 //		fail("Not yet implemented");
 //	}
 //
-	private OrderBookService createOrderBook() {
+	private OrderBook createOrderBook() {
 		
 		Equity equity = new Equity();
 		equity.setSymbol("IBM");
 		
-		OrderBookService OrderBookService = new OrderBookServiceImpl(equity);
+		OrderBook orderBook = new OrderBookImpl(equity);
 				
 		// Add 3 buy orders of price two of 10.00, 11.00, and 12.00 in varying price order
 		// Add an artificial 20 ms delay between each order for time priority test
@@ -457,7 +457,7 @@ class OrderBookServiceImplTest {
 				buyOrder.setPrice(new BigDecimal(i));
 			}
 			return buyOrder;
-		}).forEach(o -> OrderBookService.processOrder(o, false));
+		}).forEach(o -> orderBook.processOrder(o, false));
 
 		// Add 4 sell orders of price two of 13.00, 14.00, 15.00, and 16.00 in varying price order
 		// Add an artificial 20 ms delay between each order for time priority test
@@ -470,9 +470,9 @@ class OrderBookServiceImplTest {
 				sellOrder.setPrice(new BigDecimal(i));
 			}
 			return sellOrder;
-		}).forEach(o -> OrderBookService.processOrder(o, false));
+		}).forEach(o -> orderBook.processOrder(o, false));
 
-		return OrderBookService;
+		return orderBook;
 		
 	}
 	

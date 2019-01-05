@@ -1,7 +1,10 @@
 package org.hemant.thakkar.financialexchange.domain;
 
 public enum OrderStatus {
-	OPEN,
+	BOOKED,
+	PARTIALLY_BOOKED_FILLED,
+	NOT_FILLED,
 	FILLED,
-	CANCELLED
+	CANCELLED,
+	REJECTED
 }
