@@ -3,7 +3,7 @@ package org.hemant.thakkar.financialexchange.domain;
 public class APIResponse {
 	
 	private boolean success;
-	private int resultCode;
+	private int responseCode;
 	private String infoMessage;
 	private String warningMessage;
 	private String errorMessage;
@@ -38,12 +38,10 @@ public class APIResponse {
 	public void setErrorMessage(String errorMessage) {
 		this.errorMessage = errorMessage;
 	}
-
-	public int getResultCode() {
-		return resultCode;
+	public int getResponseCode() {
+		return responseCode;
 	}
-
-	public void setResultCode(int resultCode) {
-		this.resultCode = resultCode;
+	public void setResponseCode(int responseCode) {
+		this.responseCode = responseCode;
 	}
 }

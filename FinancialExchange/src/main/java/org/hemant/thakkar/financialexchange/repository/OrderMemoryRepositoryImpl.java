@@ -3,6 +3,7 @@ package org.hemant.thakkar.financialexchange.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Order;
 import org.springframework.stereotype.Service;
@@ -30,14 +31,17 @@ public class OrderMemoryRepositoryImpl implements OrderRepository {
 
 	@Override
 	public Order getOrder(long orderId) {
-		// TODO Auto-generated method stub
-		return null;
+		return orders.get(orderId);
 	}
 
 	@Override
 	public List<Order> getOrdersByProduct(long productId) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Order> ordersByProduct = 
+				orders.values().stream()
+					.parallel()
+					.filter(o -> o.getProduct().getId() == productId)
+					.collect(Collectors.toList());
+		return ordersByProduct;
 	}
 
 	@Override

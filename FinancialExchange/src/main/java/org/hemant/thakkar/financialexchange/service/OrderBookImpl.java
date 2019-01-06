@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Order;
 import org.hemant.thakkar.financialexchange.domain.OrderReport;
+import org.hemant.thakkar.financialexchange.domain.OrderStatus;
 import org.hemant.thakkar.financialexchange.domain.OrderType;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.Side;
@@ -85,10 +86,10 @@ public class OrderBookImpl implements OrderBook {
 	}
 	
 	
-	private OrderReport processMarketOrder(Order order, boolean verbose) {
+	private OrderReport processMarketOrder(Order incomingOrder, boolean verbose) {
 		ArrayList<Trade> trades = new ArrayList<Trade>();
-		Side side = order.getSide();
-		int qtyRemaining = order.getQuantity();
+		Side side = incomingOrder.getSide();
+		int qtyRemaining = incomingOrder.getQuantity();
 		if (side == Side.BUY) {
 			List<Order> offersByBestPrice = this.orders.stream()
 					.filter(o -> o.getSide() == Side.SELL && o.getType() != OrderType.MARKET)
@@ -100,7 +101,7 @@ public class OrderBookImpl implements OrderBook {
 				// That would be to find the sell orders asking for smallest price.
 				//List<Order> ordersAtMinPrice = offers.stream().sorted(Comparators.)
 				qtyRemaining = processOrderList(trades, offersByBestPrice, qtyRemaining,
-												order, verbose);
+												incomingOrder, verbose);
 			}
 		} else if (side == Side.SELL) {
 			List<Order> bidsByBestPrice = this.orders.stream()
@@ -114,13 +115,21 @@ public class OrderBookImpl implements OrderBook {
 				// That would be to find the sell orders asking for smallest price.
 				//List<Order> ordersAtMinPrice = offers.stream().sorted(Comparators.)
 				qtyRemaining = processOrderList(trades, bidsByBestPrice, qtyRemaining,
-												order, verbose);
+												incomingOrder, verbose);
 			}
 		} else {
 			throw new IllegalArgumentException("order neither market nor limit: " + 
 				    						    side);
 		}
-		
+		if (qtyRemaining < incomingOrder.getQuantity()) {
+			if (qtyRemaining == 0) {
+				incomingOrder.setStatus(OrderStatus.FILLED);
+			} else {
+				incomingOrder.setStatus(OrderStatus.PARTIALLY_FILLED);
+			}
+		} else {
+			incomingOrder.setStatus(OrderStatus.NOT_FILLED);
+		}
 		OrderReport report = new OrderReport(trades, false);
 
 		return  report;
@@ -166,8 +175,14 @@ public class OrderBookImpl implements OrderBook {
 				this.orders.add(incomingOrder);
 			}
 			orderInBook = true;
+			if (incomingOrder.getQuantity() > qtyRemaining) {
+				incomingOrder.setStatus(OrderStatus.PARTIALLY_BOOKED_FILLED);
+			} else {
+				incomingOrder.setStatus(OrderStatus.BOOKED);
+			}
 		} else {
 			orderInBook = false;
+			incomingOrder.setStatus(OrderStatus.FILLED);
 		}
 		OrderReport report = new OrderReport(trades, orderInBook);
 		if (orderInBook) {

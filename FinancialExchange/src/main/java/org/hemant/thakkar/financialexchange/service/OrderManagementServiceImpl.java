@@ -28,11 +28,11 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 	OrderBookService orderBookService;
 	
 	@Autowired
-	@Qualifier("prodcutMemoryRepsitoryImpl")
+	@Qualifier("productMemoryRepositoryImpl")
 	ProductRepository productRepository;
 	
 	@Autowired
-	@Qualifier("participantMemoryRepsitoryImpl")
+	@Qualifier("participantMemoryRepositoryImpl")
 	ParticipantRepository participantRepository;
 
 	@Override
@@ -76,6 +76,8 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 		order.setType(orderEntry.getType());
 		order.setLongevity(OrderLongevity.DAY);
 		order.setSide(orderEntry.getSide());
+		order.setQuantity(orderEntry.getQuantity());
+		order.setPrice(orderEntry.getPrice());
 		return order;
 	}
 

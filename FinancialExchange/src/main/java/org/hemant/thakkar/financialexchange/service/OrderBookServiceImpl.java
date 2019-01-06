@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service("orderBookService")
+@Service("orderBookServiceImpl")
 public class OrderBookServiceImpl implements OrderBookService {
 
 	@Autowired
@@ -19,7 +19,7 @@ public class OrderBookServiceImpl implements OrderBookService {
 	private OrderRepository orderRepository;
 	
 	@Autowired
-	@Qualifier("productMemoryRepositoryImp")
+	@Qualifier("productMemoryRepositoryImpl")
 	private ProductRepository productRepository;
 	
 	Map<Long, OrderBook> orderBooks;
@@ -34,8 +34,10 @@ public class OrderBookServiceImpl implements OrderBookService {
 		if (orderBook == null) {
 			final OrderBook newOrderBook = new OrderBookImpl(productRepository.getProduct(productId));
 			List<Order> orders = orderRepository.getOrdersByProduct(productId);
-			orders.stream().forEach(o -> newOrderBook.processOrder(o, false));
-			orderBooks.put(productId, orderBook);
+			if (orders != null) {
+				orders.stream().forEach(o -> newOrderBook.processOrder(o, false));
+			}
+			orderBooks.put(productId, newOrderBook);
 			orderBook = newOrderBook;
 		}
 		return orderBook;
