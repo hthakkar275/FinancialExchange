@@ -8,7 +8,6 @@
   <groupId>org.hemant.thakkar</groupId>
   <artifactId>FinancialExchange</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>war</packaging>
   
   <name>FinancialExchange</name>
   <description>Financial Exchange</description>
