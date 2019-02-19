@@ -9,6 +9,6 @@ public class ApplicationPingController {
 
 	@RequestMapping(value = "/status", method = RequestMethod.GET) 
 	public String sayHello() {
-		return "FiancialExchangeApplication is alive";
+		return "FiancialExchangeApplication is alive\n";
 	}
 }
