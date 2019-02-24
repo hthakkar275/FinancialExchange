@@ -6,6 +6,10 @@ public enum ResultCode {
 	PARTICIPANT_NOT_FOUND(1002, "Participant not found"),
 	ORDER_ACCEPTED(1003, "Order accepted"),
 	ORDER_REJECTED(1004, "Order rejected"), 
+	PRODUCT_REJECTED(1005, "Order rejected"), 
+	PRODUCT_ADDED(1006, "Product added"),
+	PARTICIPANT_ADDED(1007, "Participant added"),
+	UNSUPPORTED_ENTITY(9000, "Operation on an unsupported entity"),
 	GENERAL_ERROR(999999, "General error. Contact Exchange");
 	
 	ResultCode(int code, String message) {
