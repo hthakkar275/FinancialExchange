@@ -3,7 +3,6 @@ package org.hemant.thakkar.financialexchange.repository;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hemant.thakkar.financialexchange.domain.Equity;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.springframework.stereotype.Service;
 
@@ -14,19 +13,18 @@ public class ProductMemoryRepositoryImpl implements ProductRepository {
 	
 	public ProductMemoryRepositoryImpl() {
 		products = new ConcurrentHashMap<Long, Product>();
-		createProducts();
 	}
 	
 	@Override
 	public long saveProduct(Product product) {
-		// TODO Auto-generated method stub
-		return 0;
+		products.put(product.getId(), product);
+		return product.getId();
 	}
 
 	@Override
-	public long deleteProduct(long productId) {
-		// TODO Auto-generated method stub
-		return 0;
+	public boolean deleteProduct(long productId) {
+		Product product = products.remove(productId);
+		return product != null;
 	}
 
 	@Override
@@ -34,10 +32,4 @@ public class ProductMemoryRepositoryImpl implements ProductRepository {
 		return products.get(productId);
 	}
 
-	private void createProducts() {
-		Product equity = new Equity();
-		equity.setDescription("IBM Stock");
-		equity.setSymbol("IBM");
-		products.put(equity.getId(), equity);
-	}
 }

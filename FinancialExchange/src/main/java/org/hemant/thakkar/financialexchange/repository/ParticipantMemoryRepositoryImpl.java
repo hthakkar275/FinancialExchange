@@ -3,7 +3,6 @@ package org.hemant.thakkar.financialexchange.repository;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hemant.thakkar.financialexchange.domain.Broker;
 import org.hemant.thakkar.financialexchange.domain.Participant;
 import org.springframework.stereotype.Service;
 
@@ -14,19 +13,18 @@ public class ParticipantMemoryRepositoryImpl implements ParticipantRepository {
 	
 	public ParticipantMemoryRepositoryImpl() {
 		participants = new ConcurrentHashMap<Long, Participant>();
-		createParticipants();
 	}
 	
 	@Override
 	public long saveParticipant(Participant participant) {
-		// TODO Auto-generated method stub
-		return 0;
+		participants.put(participant.getId(), participant);
+		return participant.getId();
 	}
 
 	@Override
-	public long deleteParticipant(long participantId) {
-		// TODO Auto-generated method stub
-		return 0;
+	public boolean deleteParticipant(long participantId) {
+		Participant participant = participants.get(participantId);
+		return participant != null;
 	}
 
 	@Override
@@ -34,9 +32,4 @@ public class ParticipantMemoryRepositoryImpl implements ParticipantRepository {
 		return participants.get(participantId);
 	}
 
-	private void createParticipants() {
-		Broker broker = new Broker();
-		broker.setName("Hemant");
-		participants.put(broker.getId(), broker);
-	}
 }
