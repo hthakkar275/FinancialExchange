@@ -33,7 +33,7 @@ public class ProductMemoryRepositoryImpl implements ProductRepository {
 	}
 
 	@Override
-	public int getProductCount() {
+	public int getCount() {
 		return products.size();
 	}
 

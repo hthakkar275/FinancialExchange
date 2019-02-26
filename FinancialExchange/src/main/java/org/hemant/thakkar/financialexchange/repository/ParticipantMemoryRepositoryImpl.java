@@ -32,5 +32,10 @@ public class ParticipantMemoryRepositoryImpl implements ParticipantRepository {
 		return participants.get(participantId);
 	}
 
+	@Override
+	public int getCount() {
+		return participants.size();
+	}
+
 	
 }

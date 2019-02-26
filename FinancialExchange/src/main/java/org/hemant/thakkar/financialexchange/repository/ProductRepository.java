@@ -6,6 +6,6 @@ public interface ProductRepository {
 	long saveProduct(Product product);
 	boolean deleteProduct(long productId);
 	Product getProduct(long productId);
-	int getProductCount();
+	int getCount();
 }
 
