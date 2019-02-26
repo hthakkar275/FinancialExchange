@@ -44,4 +44,5 @@ public class APIResponse {
 	public void setResponseCode(int responseCode) {
 		this.responseCode = responseCode;
 	}
+	
 }

@@ -14,5 +14,5 @@ public interface Order extends Tradable {
 	public void setType(OrderType type);
 	public OrderLongevity getLongevity();
 	public void setLongevity(OrderLongevity longevity);
-	 
+	  
 }

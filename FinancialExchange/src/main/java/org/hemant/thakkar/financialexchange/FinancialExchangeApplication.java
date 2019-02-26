@@ -10,4 +10,5 @@ public class FinancialExchangeApplication {
 		SpringApplication.run(FinancialExchangeApplication.class, args);
 	}
 
+	
 }

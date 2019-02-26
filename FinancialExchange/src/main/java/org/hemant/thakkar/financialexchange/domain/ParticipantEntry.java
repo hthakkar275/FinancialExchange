@@ -17,5 +17,4 @@ public class ParticipantEntry {
 		this.name = name;
 	}
 	
-	
 }

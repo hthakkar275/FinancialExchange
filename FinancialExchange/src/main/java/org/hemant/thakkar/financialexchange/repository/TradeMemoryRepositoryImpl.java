@@ -33,3 +33,4 @@ public class TradeMemoryRepositoryImpl implements TradeRepository {
 	}
 
 }
+

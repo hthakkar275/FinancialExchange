@@ -98,6 +98,5 @@ public class OrderImpl extends TradableImpl implements Order {
 		message.append(" price = ").append(this.getPrice()).append(";");
 		message.append(" participant: ").append(this.getParticipant());
 		return message.toString();
-
 	}
 }

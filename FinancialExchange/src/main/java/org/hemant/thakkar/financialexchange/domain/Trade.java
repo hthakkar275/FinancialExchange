@@ -18,4 +18,5 @@ public interface Trade {
 	public int getQuantity();
 	public void setQuantity(int quantity);
 	
+	
 }

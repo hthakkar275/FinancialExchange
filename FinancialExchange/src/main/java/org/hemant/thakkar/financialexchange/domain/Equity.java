@@ -8,6 +8,5 @@ public class Equity extends BaseProductImpl {
 		message.append(" id = ").append(this.getId()).append(";");
 		message.append(" symbol = ").append(getSymbol());
 		return message.toString();
-
 	}
 }

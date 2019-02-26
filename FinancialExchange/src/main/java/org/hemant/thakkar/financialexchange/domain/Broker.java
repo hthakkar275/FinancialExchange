@@ -9,4 +9,5 @@ public class Broker extends BaseParticipantImpl {
 		message.append("name = ").append(getName());
 		return message.toString();
 	}
+	
 }

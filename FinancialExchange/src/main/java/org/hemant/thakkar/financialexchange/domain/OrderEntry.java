@@ -61,6 +61,5 @@ public class OrderEntry {
 	public void setParticipantId(long participantId) {
 		this.participantId = participantId;
 	}
-	
-	
+ 	
 }

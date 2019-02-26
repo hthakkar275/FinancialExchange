@@ -10,3 +10,4 @@ public interface ProductManagementService {
 	void deleteProduct(long productId) throws ExchangeException;
 	Product updateProduct(long productId, ProductEntry productEntry) throws ExchangeException;
 }
+

@@ -94,4 +94,5 @@ public class TradeImpl implements Trade {
 		return message.toString();
 
 	}
+	
 }

@@ -43,5 +43,6 @@ public abstract class BaseProductImpl implements Product {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
 
 }

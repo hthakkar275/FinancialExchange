@@ -39,5 +39,4 @@ public class OrderReport {
 		retString += (order.toString());
 		return  retString + "\n--------------------------";
 	}
-
 }

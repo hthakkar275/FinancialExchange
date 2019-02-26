@@ -10,3 +10,4 @@ public interface TradeRepository {
 	Trade getTrade(long tradeId);
 	List<Trade> getTrades(long orderId);
 }
+

@@ -32,4 +32,5 @@ public class ParticipantMemoryRepositoryImpl implements ParticipantRepository {
 		return participants.get(participantId);
 	}
 
+	
 }

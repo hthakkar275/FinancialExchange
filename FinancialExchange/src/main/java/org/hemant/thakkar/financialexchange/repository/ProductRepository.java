@@ -8,3 +8,4 @@ public interface ProductRepository {
 	Product getProduct(long productId);
 	int getProductCount();
 }
+

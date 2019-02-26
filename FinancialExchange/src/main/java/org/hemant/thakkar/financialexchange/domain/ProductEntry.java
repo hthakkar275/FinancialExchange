@@ -24,3 +24,4 @@ public class ProductEntry {
 		this.productType = productType;
 	}
 }
+

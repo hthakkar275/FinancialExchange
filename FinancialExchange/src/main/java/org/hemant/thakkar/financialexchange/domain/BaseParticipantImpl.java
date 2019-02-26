@@ -32,4 +32,5 @@ public abstract class BaseParticipantImpl implements Participant {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
 }

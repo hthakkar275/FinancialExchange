@@ -28,3 +28,4 @@ public enum ResultCode {
 		return this.message;
 	}
 }
+

@@ -7,3 +7,4 @@ public interface ParticipantRepository {
 	boolean deleteParticipant(long participantId);
 	Participant getParticipant(long participantId);
 }
+

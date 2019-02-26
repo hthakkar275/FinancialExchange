@@ -58,4 +58,5 @@ public abstract class TradableImpl implements Tradable {
 	public void setParticipant(Participant participant) {
 		this.participant = participant;
 	}
+	
 }

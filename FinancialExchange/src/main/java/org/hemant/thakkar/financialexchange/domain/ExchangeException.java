@@ -24,5 +24,5 @@ public class ExchangeException extends Exception {
 	public void setErrorCode(int errorCode) {
 		this.errorCode = errorCode;
 	}
-	
+	 
 }

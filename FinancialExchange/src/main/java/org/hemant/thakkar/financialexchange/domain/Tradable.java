@@ -14,3 +14,4 @@ public interface Tradable {
 	public Side getSide();
 	public void setSide(Side side);
 }
+

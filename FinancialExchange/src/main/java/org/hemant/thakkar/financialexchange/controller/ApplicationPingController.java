@@ -11,4 +11,4 @@ public class ApplicationPingController {
 	public String sayHello() {
 		return "FiancialExchangeApplication is alive\n";
 	}
-}
+} 

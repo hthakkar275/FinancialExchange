@@ -10,3 +10,4 @@ public interface ParticipantManagementService {
 	void deleteParticipant(long participantId) throws ExchangeException;
 	Participant updateParticipant(long participantId, ParticipantEntry participantEntry) throws ExchangeException;
 }
+

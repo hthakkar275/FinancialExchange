@@ -11,3 +11,4 @@ public interface OrderRepository {
 	List<Order> getOrdersByProduct(long productId);
 	List<Order> getOrdersByParticipant(long participantId);
 }
+

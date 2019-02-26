@@ -9,4 +9,4 @@ public enum OrderStatus {
 	CANCELLED,
 	PARTIALLY_CANCELLED,
 	REJECTED
-}
+} 

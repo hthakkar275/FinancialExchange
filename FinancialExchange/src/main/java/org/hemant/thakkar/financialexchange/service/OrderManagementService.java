@@ -9,3 +9,4 @@ public interface OrderManagementService {
 	OrderReport cancelOrder(long orderId) throws ExchangeException;
 	OrderReport getOrderStatus(long orderId) throws ExchangeException;
 }
+

@@ -19,4 +19,4 @@ public class APIDataResponse<T> extends APIResponse {
 	public void setData(T data) {
 		this.data = data;
 	}
-}
+} 
