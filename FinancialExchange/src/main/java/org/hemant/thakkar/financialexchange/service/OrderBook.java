@@ -14,7 +14,7 @@ public interface OrderBook {
 
 	OrderReport processOrder(Order order, boolean verbose);
 
-	void cancelOrder(long orderId);
+	Order cancelOrder(long orderId);
 
 	void modifyOrder(int qId, HashMap<String, String> order);
 
@@ -47,6 +47,8 @@ public interface OrderBook {
 	void setProduct(Product product);
 
 	void setOrders(List<Order> orders);
+
+	Order getOrder(long orderId);
 
 }
 

@@ -1,13 +1,14 @@
 package org.hemant.thakkar.financialexchange.domain;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class OrderReport {
-	private ArrayList<Trade> trades = new ArrayList<Trade>();
+	private List<Trade> trades = new ArrayList<Trade>();
 	private boolean orderInBook = false;
 	private Order order;
 	
-	public OrderReport(ArrayList<Trade> trades, 
+	public OrderReport(List<Trade> trades, 
 					   boolean orderInBook) {
 		this.trades = trades;
 		this.orderInBook = orderInBook;
@@ -21,7 +22,7 @@ public class OrderReport {
 		this.order = order;
 	}
 
-	public ArrayList<Trade> getTrades() {
+	public List<Trade> getTrades() {
 		return trades;
 	}
 

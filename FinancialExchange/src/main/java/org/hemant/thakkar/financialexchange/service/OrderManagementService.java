@@ -8,5 +8,6 @@ public interface OrderManagementService {
 	OrderReport acceptNewOrder(OrderEntry orderEntry) throws ExchangeException;
 	OrderReport cancelOrder(long orderId) throws ExchangeException;
 	OrderReport getOrderStatus(long orderId) throws ExchangeException;
+	OrderReport updateOrder(long orderId, OrderEntry orderEntry) throws ExchangeException;
 }
 

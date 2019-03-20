@@ -19,14 +19,14 @@ public class OrderMemoryRepositoryImpl implements OrderRepository {
 	
 	@Override
 	public long saveOrder(Order order) {
-		// TODO Auto-generated method stub
-		return 0;
+		orders.put(order.getId(), order);
+		return order.getId();
 	}
 
 	@Override
-	public long deleteOrder(long orderId) {
-		// TODO Auto-generated method stub
-		return 0;
+	public boolean deleteOrder(long orderId) {
+		Order order = orders.remove(orderId);
+		return order != null;
 	}
 
 	@Override
@@ -46,9 +46,17 @@ public class OrderMemoryRepositoryImpl implements OrderRepository {
 
 	@Override
 	public List<Order> getOrdersByParticipant(long participantId) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Order> ordersByParticipant = 
+				orders.values().stream()
+				.parallel()
+				.filter(o -> o.getParticipant().getId() == participantId)
+				.collect(Collectors.toList());
+		return ordersByParticipant;
 	}
 
+	@Override
+	public int getCount() {
+		return orders.size();
+	}
 	
 }

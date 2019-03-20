@@ -230,14 +230,20 @@ public class OrderBookImpl implements OrderBook {
 		return qtyRemaining;
 	}
 	
-	public synchronized void cancelOrder(long orderId) {
+	public synchronized Order cancelOrder(long orderId) {
 		Iterator<Order> iterator = orders.iterator();
+		Order cancelledOrder = null;
 		while (iterator.hasNext()) {
 			Order o = iterator.next();
 			if (o.getId() == orderId) {
+				cancelledOrder = o;
 				iterator.remove();
+				if (o.getStatus() == OrderStatus.PARTIALLY_BOOKED_FILLED) {
+					o.setStatus(OrderStatus.PARTIALLY_FILLED);
+				}
 			}
 		}
+		return cancelledOrder;
 	}
 	
 	
@@ -384,6 +390,15 @@ public class OrderBookImpl implements OrderBook {
 	@Override
 	public void setOrders(List<Order> orders) {
 		this.orders = orders;
+	}
+
+	@Override
+	public Order getOrder(long orderId) {
+		Order order = orders.stream()
+			.filter(o -> o.getId() == orderId)
+			.findFirst()
+			.orElse(null);
+		return order;
 	}
 
 	
