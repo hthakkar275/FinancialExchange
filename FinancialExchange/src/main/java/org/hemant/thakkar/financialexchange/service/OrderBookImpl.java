@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Order;
-import org.hemant.thakkar.financialexchange.domain.OrderReport;
+import org.hemant.thakkar.financialexchange.domain.OrderState;
 import org.hemant.thakkar.financialexchange.domain.OrderStatus;
 import org.hemant.thakkar.financialexchange.domain.OrderType;
 import org.hemant.thakkar.financialexchange.domain.Product;
@@ -63,8 +63,8 @@ public class OrderBookImpl implements OrderBook {
 	}
 	
 	
-	public OrderReport processOrder(Order incomingOrder, boolean verbose) {
-		OrderReport oReport;
+	public OrderState processOrder(Order incomingOrder, boolean verbose) {
+		OrderState oReport;
 		
 		if (incomingOrder.getQuantity() <= 0 ) {
 			throw new IllegalArgumentException("processOrder() given qty <= 0");
@@ -86,7 +86,7 @@ public class OrderBookImpl implements OrderBook {
 	}
 	
 	
-	private OrderReport processMarketOrder(Order incomingOrder, boolean verbose) {
+	private OrderState processMarketOrder(Order incomingOrder, boolean verbose) {
 		ArrayList<Trade> trades = new ArrayList<Trade>();
 		Side side = incomingOrder.getSide();
 		int qtyRemaining = incomingOrder.getQuantity();
@@ -130,13 +130,13 @@ public class OrderBookImpl implements OrderBook {
 		} else {
 			incomingOrder.setStatus(OrderStatus.NOT_FILLED);
 		}
-		OrderReport report = new OrderReport(trades, false);
+		OrderState report = new OrderState(trades, false);
 
 		return  report;
 	}
 	
 	
-	private OrderReport processLimitOrder(Order incomingOrder, boolean verbose) {
+	private OrderState processLimitOrder(Order incomingOrder, boolean verbose) {
 		boolean orderInBook = false;
 		ArrayList<Trade> trades = new ArrayList<Trade>();
 		int qtyRemaining = incomingOrder.getQuantity();
@@ -184,7 +184,7 @@ public class OrderBookImpl implements OrderBook {
 			orderInBook = false;
 			incomingOrder.setStatus(OrderStatus.FILLED);
 		}
-		OrderReport report = new OrderReport(trades, orderInBook);
+		OrderState report = new OrderState(trades, orderInBook);
 		if (orderInBook) {
 			report.setOrder(incomingOrder);
 		}

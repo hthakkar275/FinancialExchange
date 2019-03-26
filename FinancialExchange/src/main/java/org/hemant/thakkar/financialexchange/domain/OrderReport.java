@@ -1,43 +1,92 @@
 package org.hemant.thakkar.financialexchange.domain;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class OrderReport {
-	private List<Trade> trades = new ArrayList<Trade>();
-	private boolean orderInBook = false;
-	private Order order;
-	
-	public OrderReport(List<Trade> trades, 
-					   boolean orderInBook) {
-		this.trades = trades;
-		this.orderInBook = orderInBook;
-	}
 
-	public Order getOrder() {
-		return order;
-	}
+	private long id;
+	private long productId;
+	private long participantId;
+	private String entryTime;
+	private Side side;
+	private int originalQuantity;
+	private int tradedQuantity;
+	private int bookedQuantity;
+	private OrderType type;
+	private OrderStatus status;
+	private OrderLongevity longevity;
+	private List<Long> trades;
 	
-	public void setOrder(Order order) {
-		this.order = order;
+	public long getId() {
+		return id;
 	}
-
-	public List<Trade> getTrades() {
+	public void setId(long id) {
+		this.id = id;
+	}
+	public long getProductId() {
+		return productId;
+	}
+	public void setProductId(long productId) {
+		this.productId = productId;
+	}
+	public long getParticipantId() {
+		return participantId;
+	}
+	public void setParticipantId(long participantId) {
+		this.participantId = participantId;
+	}
+	public String getEntryTime() {
+		return entryTime;
+	}
+	public void setEntryTime(String entryTime) {
+		this.entryTime = entryTime;
+	}
+	public Side getSide() {
+		return side;
+	}
+	public void setSide(Side side) {
+		this.side = side;
+	}
+	public int getOriginalQuantity() {
+		return originalQuantity;
+	}
+	public void setOriginalQuantity(int originalQuantity) {
+		this.originalQuantity = originalQuantity;
+	}
+	public int getTradedQuantity() {
+		return tradedQuantity;
+	}
+	public void setTradedQuantity(int tradedQuantity) {
+		this.tradedQuantity = tradedQuantity;
+	}
+	public int getBookedQuantity() {
+		return bookedQuantity;
+	}
+	public void setBookedQuantity(int bookedQuantity) {
+		this.bookedQuantity = bookedQuantity;
+	}
+	public OrderType getType() {
+		return type;
+	}
+	public void setType(OrderType type) {
+		this.type = type;
+	}
+	public OrderStatus getStatus() {
+		return status;
+	}
+	public void setStatus(OrderStatus status) {
+		this.status = status;
+	}
+	public OrderLongevity getLongevity() {
+		return longevity;
+	}
+	public void setLongevity(OrderLongevity longevity) {
+		this.longevity = longevity;
+	}
+	public List<Long> getTrades() {
 		return trades;
 	}
-
-	public boolean isOrderInBook() {
-		return orderInBook;
-	}
-	
-	public String toString() {
-		String retString = "--- Order Report ---:\nTrades:\n";
-		for (Trade t : trades) {
-			retString += ("\n" + t.toString());
-		}
-		retString += ("order in book? " + orderInBook + "\n");
-		retString+= ("\nOrders:\n");
-		retString += (order.toString());
-		return  retString + "\n--------------------------";
+	public void setTrades(List<Long> trades) {
+		this.trades = trades;
 	}
 }

@@ -6,6 +6,12 @@ public interface Order extends Tradable {
 
 	public int getQuantity();
 	public void setQuantity(int quantity);
+	public int getTradedQantity();
+	public void setTradedQuantity(int tradedQuantity);
+	public int getBookedQuantity();
+	public void setBookedQuantity(int bookedQuantity);
+	public int getCancelledQuantity();
+	public void setCancelledQuantity(int cancelledQuantity);
 	public BigDecimal getPrice();
 	public void setPrice(BigDecimal price);
 	public OrderStatus getStatus();

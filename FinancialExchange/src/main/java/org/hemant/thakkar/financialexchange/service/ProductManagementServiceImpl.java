@@ -68,5 +68,14 @@ public class ProductManagementServiceImpl implements ProductManagementService {
 		return product;
 	}
 
+	@Override
+	public Product getProduct(String symbol) throws ExchangeException {
+		Product product = productRepository.getProduct(symbol);
+		if (product == null) {
+			throw new ExchangeException(ResultCode.PRODUCT_NOT_FOUND);
+		}
+		return product;
+	}
+
 }
 

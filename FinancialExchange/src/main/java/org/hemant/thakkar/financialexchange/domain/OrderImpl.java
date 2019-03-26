@@ -7,6 +7,9 @@ public class OrderImpl extends TradableImpl implements Order {
 
 	private Side side;
 	private int quantity;
+	private int tradedQuantity;
+	private int bookedQuantity;
+	private int cancelledQuantity;
 	private BigDecimal price;
 	private OrderStatus status;
 	private OrderType type;
@@ -99,4 +102,29 @@ public class OrderImpl extends TradableImpl implements Order {
 		message.append(" participant: ").append(this.getParticipant());
 		return message.toString();
 	}
+
+	public int getTradedQantity() {
+		return tradedQuantity;
+	}
+
+	public void setTradedQuantity(int tradedQuantity) {
+		this.tradedQuantity = tradedQuantity;
+	}
+	
+	public int getBookedQuantity() {
+		return bookedQuantity;
+	}
+
+	public void setBookedQuantity(int bookedQuantity) {
+		this.bookedQuantity = bookedQuantity;
+	}
+
+	public int getCancelledQuantity() {
+		return cancelledQuantity;
+	}
+
+	public void setCancelledQuantity(int cancelledQuantity) {
+		this.cancelledQuantity = cancelledQuantity;
+	}
+
 }

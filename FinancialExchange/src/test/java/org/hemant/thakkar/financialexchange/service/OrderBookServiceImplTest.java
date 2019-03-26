@@ -13,7 +13,7 @@ import org.hemant.thakkar.financialexchange.domain.Equity;
 import org.hemant.thakkar.financialexchange.domain.Order;
 import org.hemant.thakkar.financialexchange.domain.OrderImpl;
 import org.hemant.thakkar.financialexchange.domain.OrderLongevity;
-import org.hemant.thakkar.financialexchange.domain.OrderReport;
+import org.hemant.thakkar.financialexchange.domain.OrderState;
 import org.hemant.thakkar.financialexchange.domain.OrderType;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.Side;
@@ -39,7 +39,7 @@ class OrderBookServiceImplTest {
 		buyOrder.setProduct(equity);
 		
 		OrderBook orderBook = new OrderBookImpl(equity);
-		OrderReport orderReport = orderBook.processOrder(buyOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(0, orderReport.getTrades().size());
@@ -63,7 +63,7 @@ class OrderBookServiceImplTest {
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(130);
 		
-		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -105,7 +105,7 @@ class OrderBookServiceImplTest {
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(160);
 		
-		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(2, orderReport.getTrades().size());
@@ -149,7 +149,7 @@ class OrderBookServiceImplTest {
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(90);
 		
-		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -186,7 +186,7 @@ class OrderBookServiceImplTest {
 		buyMarketOrder.setPrice(new BigDecimal("13.00"));
 		buyMarketOrder.setQuantity(300);
 		
-		OrderReport orderReport = orderBook.processOrder(buyMarketOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyMarketOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(3, orderReport.getTrades().size());
@@ -229,7 +229,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("9.00"));
 		buyLimitOrder.setQuantity(90);
 		
-		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertTrue(orderReport.isOrderInBook());
 		assertEquals(0, orderReport.getTrades().size());
@@ -272,7 +272,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(130);
 		
-		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());
@@ -316,7 +316,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(300);
 		
-		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertTrue(orderReport.isOrderInBook());
 		assertEquals(2, orderReport.getTrades().size());
@@ -362,7 +362,7 @@ class OrderBookServiceImplTest {
 		buyLimitOrder.setPrice(new BigDecimal("13.00"));
 		buyLimitOrder.setQuantity(90);
 		
-		OrderReport orderReport = orderBook.processOrder(buyLimitOrder, true);
+		OrderState orderReport = orderBook.processOrder(buyLimitOrder, true);
 		assertNotNull(orderReport);
 		assertFalse(orderReport.isOrderInBook());
 		assertEquals(1, orderReport.getTrades().size());

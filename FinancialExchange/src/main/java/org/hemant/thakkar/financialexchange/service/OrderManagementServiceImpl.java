@@ -1,6 +1,8 @@
 package org.hemant.thakkar.financialexchange.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.ExchangeException;
 import org.hemant.thakkar.financialexchange.domain.Order;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 @Service("orderManagementServiceImpl")
 public class OrderManagementServiceImpl implements OrderManagementService {
 
+	private static DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss.SSS");
+	
 	@Autowired
 	@Qualifier("orderMemoryRepositoryImpl")
 	private OrderRepository orderRepository;
@@ -45,7 +49,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 	private TradeRepository tradeRepository;
 
 	@Override
-	public OrderReport cancelOrder(long orderId) throws ExchangeException {
+	public void cancelOrder(long orderId) throws ExchangeException {
 		Order order = orderRepository.getOrder(orderId);
 		if (order == null) {
 			throw new ExchangeException(ResultCode.ORDER_NOT_FOUND);
@@ -53,39 +57,21 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 		if (order.getStatus() == OrderStatus.FILLED) {
 			throw new ExchangeException(ResultCode.ORDER_FILLED);
 		}
-		OrderBook orderBook = orderBookService.getOrderBook(order.getProduct().getId());
-		boolean orderInBook = orderBook.getOrder(orderId) != null;
-		if (orderInBook) {
-			Order cancelledOrder = orderBook.cancelOrder(orderId);
-			orderRepository.saveOrder(cancelledOrder);
-		}
-		OrderReport orderReport = getOrderStatus(orderId);
-		return orderReport;
+		orderBookService.cancelOrder(order);
 	}
 
 	@Override
 	public OrderReport getOrderStatus(long orderId) throws ExchangeException {
 		Order order = orderRepository.getOrder(orderId);
-		OrderReport orderReport = null;
-		if (order != null) {
-			List<Trade> trades = tradeRepository.getTrades(orderId);
-			OrderBook orderBook = orderBookService.getOrderBook(order.getProduct().getId());
-			boolean orderInBook = orderBook.getOrder(orderId) != null;
-			orderReport = new OrderReport(trades, orderInBook);
-		}
+		OrderReport orderReport = createOrderReport(order);
 		return orderReport;
 	}
 
 	@Override
-	public OrderReport acceptNewOrder(OrderEntry orderEntry) throws ExchangeException {
+	public void acceptNewOrder(OrderEntry orderEntry) throws ExchangeException {
 		Order order = createOrder(orderEntry);
 		orderRepository.saveOrder(order);
-		OrderBook orderBook = orderBookService.getOrderBook(orderEntry.getProductId());
-		if (orderBook == null) {
-			throw new ExchangeException(ResultCode.GENERAL_ERROR);
-		}
-		OrderReport orderReport = orderBook.processOrder(order, false);
-		return orderReport;
+		orderBookService.addOrder(order);
 	}
 
 	private Order createOrder(OrderEntry orderEntry) throws ExchangeException {
@@ -111,15 +97,29 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 	}
 
 	@Override
-	public OrderReport updateOrder(long orderId, OrderEntry orderEntry) throws ExchangeException {
+	public void updateFromOrderBook(long orderId, OrderEntry orderEntry) throws ExchangeException {
 		Order order = createOrder(orderEntry);
 		orderRepository.saveOrder(order);
-		OrderBook orderBook = orderBookService.getOrderBook(orderEntry.getProductId());
-		if (orderBook == null) {
-			throw new ExchangeException(ResultCode.GENERAL_ERROR);
-		}
-		OrderReport orderReport = orderBook.processOrder(order, false);
-		return orderReport;
 	}
 
+	private OrderReport createOrderReport(Order order) {
+		OrderReport orderReport = new OrderReport();
+		orderReport.setBookedQuantity(order.getBookedQuantity());
+		orderReport.setEntryTime(timeFormatter.format(order.getEntryTime()));
+		orderReport.setId(order.getId());
+		orderReport.setParticipantId(order.getParticipant().getId());
+		orderReport.setLongevity(order.getLongevity());
+		orderReport.setOriginalQuantity(order.getQuantity());
+		orderReport.setProductId(order.getProduct().getId());
+		orderReport.setSide(order.getSide());
+		orderReport.setStatus(order.getStatus());
+		orderReport.setTradedQuantity(order.getTradedQantity());
+		orderReport.setType(order.getType());
+		List<Long> trades = tradeRepository.getTrades(order.getId())
+				.stream()
+				.map(Trade::getId)
+				.collect(Collectors.toList());
+		orderReport.setTrades(trades);
+		return orderReport;
+	}
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -53,6 +54,25 @@ public class ProductManagementController {
 			response.setInfoMessage(ResultCode.PRODUCT_UPDATED.getMessage());
 			response.setData(equity);
 			response.setResponseCode(ResultCode.PRODUCT_UPDATED.getCode());
+		} catch (ExchangeException ee) {
+			response.setErrorMessage(ee.getMessage());
+			response.setResponseCode(ee.getErrorCode());
+		} catch (Throwable t) {
+			response.setErrorMessage("Unexpected error. Please contact customer service");
+			response.setResponseCode(ResultCode.GENERAL_ERROR.getCode());
+		}
+		return response;
+	}
+
+	@GetMapping(value = "/product/equity", produces = "application/json", consumes = "application/json")
+	public APIDataResponse<Equity> getEquity(@RequestParam("symbol") String symbol)  {
+		APIDataResponse<Equity> response = new APIDataResponse<>();
+		try {
+			Equity equity = (Equity) productManagmentService.getProduct(symbol);
+			response.setSuccess(true);
+			response.setInfoMessage(ResultCode.PRODUCT_FOUND.getMessage());
+			response.setData(equity);
+			response.setResponseCode(ResultCode.PRODUCT_FOUND.getCode());
 		} catch (ExchangeException ee) {
 			response.setErrorMessage(ee.getMessage());
 			response.setResponseCode(ee.getErrorCode());

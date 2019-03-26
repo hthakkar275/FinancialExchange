@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import org.hemant.thakkar.financialexchange.domain.Order;
-import org.hemant.thakkar.financialexchange.domain.OrderReport;
+import org.hemant.thakkar.financialexchange.domain.OrderState;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.Side;
 import org.hemant.thakkar.financialexchange.domain.Trade;
@@ -12,7 +12,7 @@ import org.hemant.thakkar.financialexchange.domain.Trade;
 public interface OrderBook {
 	void reset();
 
-	OrderReport processOrder(Order order, boolean verbose);
+	OrderState processOrder(Order order, boolean verbose);
 
 	Order cancelOrder(long orderId);
 
