@@ -37,5 +37,13 @@ public class ProductMemoryRepositoryImpl implements ProductRepository {
 		return products.size();
 	}
 
+	@Override
+	public Product getProduct(String symbol) {
+		Product product = products.values().stream()
+			.filter(p -> p.getSymbol().equals(symbol))
+			.findFirst().orElse(null);
+		return product;
+	}
+
 }
 
