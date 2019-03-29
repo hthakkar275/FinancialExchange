@@ -57,7 +57,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 		if (order.getStatus() == OrderStatus.FILLED) {
 			throw new ExchangeException(ResultCode.ORDER_FILLED);
 		}
-		orderBookService.cancelOrder(order);
+		orderBookService.cancelOrder(orderId);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 	public void acceptNewOrder(OrderEntry orderEntry) throws ExchangeException {
 		Order order = createOrder(orderEntry);
 		orderRepository.saveOrder(order);
-		orderBookService.addOrder(order);
+		orderBookService.addOrder(orderEntry);
 	}
 
 	private Order createOrder(OrderEntry orderEntry) throws ExchangeException {
@@ -121,5 +121,14 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 				.collect(Collectors.toList());
 		orderReport.setTrades(trades);
 		return orderReport;
+	}
+
+	@Override
+	public List<OrderReport> getOrdersForProduct(long productId) throws ExchangeException {
+		List<Order> orders = orderRepository.getOrdersByProduct(productId);
+		List<OrderReport> orderReports = orders.stream()
+				.map(this::createOrderReport)
+				.collect(Collectors.toList());
+		return orderReports;
 	}
 }

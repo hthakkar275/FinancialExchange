@@ -10,6 +10,7 @@ import org.hemant.thakkar.financialexchange.domain.OrderBookState;
 import org.hemant.thakkar.financialexchange.domain.OrderEntry;
 import org.hemant.thakkar.financialexchange.domain.OrderImpl;
 import org.hemant.thakkar.financialexchange.domain.OrderLongevity;
+import org.hemant.thakkar.financialexchange.domain.OrderReport;
 import org.hemant.thakkar.financialexchange.domain.Participant;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.ResultCode;
@@ -24,8 +25,8 @@ import org.springframework.stereotype.Service;
 public class OrderBookServiceImpl implements OrderBookService {
 
 	@Autowired
-	@Qualifier("orderMemoryRepositoryImpl")
-	private OrderRepository orderRepository;
+	@Qualifier("orderManagementServiceImpl")
+	private OrderManagementServiceImpl orderManagementServiceImpl;
 	
 	@Autowired
 	@Qualifier("productMemoryRepositoryImpl")
@@ -35,23 +36,28 @@ public class OrderBookServiceImpl implements OrderBookService {
 	@Qualifier("participantMemoryRepositoryImpl")
 	private ParticipantRepository participantRepository;
 	
-	Map<Long, OrderBook> orderBooks;
+	private Map<Long, OrderBook> orderBooks;
 	
 	public OrderBookServiceImpl() {
 		this.orderBooks = new ConcurrentHashMap<Long, OrderBook>();
 	}
 	
 	public OrderBook getOrderBook(long productId) {
-		OrderBook orderBook = orderBooks.get(productId);
-		if (orderBook == null) {
-			final OrderBook newOrderBook = new OrderBookImpl(productRepository.getProduct(productId));
-			List<Order> orders = orderRepository.getOrdersByProduct(productId);
-			if (orders != null) {
-				orders.stream().forEach(o -> newOrderBook.processOrder(o, false));
+		OrderBook orderBook = null;
+			orderBook = orderBooks.get(productId);
+			if (orderBook == null) {
+				final OrderBook newOrderBook = new OrderBookImpl(productRepository.getProduct(productId));
+				List<OrderReport> orders = orderManagementServiceImpl.getOrdersForProduct(productId);
+					orders.stream().map(o -> {
+						try {
+							return createOrder(o);
+						} catch (ExchangeException e) {
+							throw e;
+						}
+					}).forEach(o -> newOrderBook.processOrder(o, false));
+				orderBooks.put(productId, newOrderBook);
+				orderBook = newOrderBook;
 			}
-			orderBooks.put(productId, newOrderBook);
-			orderBook = newOrderBook;
-		}
 		return orderBook;
 	}
 
@@ -89,6 +95,28 @@ public class OrderBookServiceImpl implements OrderBookService {
 		order.setSide(orderEntry.getSide());
 		order.setQuantity(orderEntry.getQuantity());
 		order.setPrice(orderEntry.getPrice());
+		return order;
+	}
+
+	private Order createOrder(OrderReport orderReport) throws ExchangeException {
+		Product product = productRepository.getProduct(orderReport.getProductId());
+		if (product == null) {
+			throw new ExchangeException(ResultCode.PRODUCT_NOT_FOUND);
+		}
+		
+		Participant participant = participantRepository.getParticipant(orderReport.getParticipantId());
+		if (participant == null) {
+			throw new ExchangeException(ResultCode.PARTICIPANT_NOT_FOUND);
+		}
+		
+		Order order = new OrderImpl();
+		order.setProduct(product);
+		order.setParticipant(participant);
+		order.setType(orderReport.getType());
+		order.setLongevity(OrderLongevity.DAY);
+		order.setSide(orderReport.getSide());
+		order.setQuantity(orderReport.getOriginalQuantity());
+		order.setPrice(orderReport.getPrice());
 		return order;
 	}
 

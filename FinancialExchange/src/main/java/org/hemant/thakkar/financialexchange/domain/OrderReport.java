@@ -1,5 +1,6 @@
 package org.hemant.thakkar.financialexchange.domain;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderReport {
@@ -15,6 +16,13 @@ public class OrderReport {
 	private OrderType type;
 	private OrderStatus status;
 	private OrderLongevity longevity;
+	private BigDecimal price;
+	public BigDecimal getPrice() {
+		return price;
+	}
+	public void setPrice(BigDecimal price) {
+		this.price = price;
+	}
 	private List<Long> trades;
 	
 	public long getId() {
