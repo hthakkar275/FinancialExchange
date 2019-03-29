@@ -10,7 +10,6 @@ public class OrderBookState {
 	private Map<BigDecimal, Integer> bids;
 	private Map<BigDecimal, Integer> offers;
 	
-	
 	public long getProductId() {
 		return productId;
 	}
