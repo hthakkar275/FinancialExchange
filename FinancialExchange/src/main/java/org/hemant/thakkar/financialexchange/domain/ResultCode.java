@@ -21,6 +21,7 @@ public enum ResultCode {
 	ORDER_CANCELLED(1017, "Order cancelled"),
 	ORDER_FILLED(1018, "Order filled"),
 	ORDER_UPDATED(1019, "Order updated"),
+	ORDER_BOOK_FOUND(1020, "Order book found"),
 	UNSUPPORTED_ENTITY(9000, "Operation on an unsupported entity"),
 	GENERAL_ERROR(999999, "General error. Contact Exchange");
 	
