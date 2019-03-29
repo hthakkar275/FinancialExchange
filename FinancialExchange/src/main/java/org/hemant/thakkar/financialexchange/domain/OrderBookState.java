@@ -3,6 +3,12 @@ package org.hemant.thakkar.financialexchange.domain;
 import java.math.BigDecimal;
 import java.util.Map;
 
+/**
+ * OrderBookState
+ * 
+ * @author Hemant
+ *
+ */
 public class OrderBookState {
 
 	private long productId;
