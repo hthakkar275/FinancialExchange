@@ -55,7 +55,7 @@ public class OrderBookManagementController {
 
 	} 
 
-	@DeleteMapping(value = "/order/{orderId}", produces = "application/json", consumes = "application/json")
+	@DeleteMapping(value = "/orderBook/{orderId}", produces = "application/json", consumes = "application/json")
 	public APIResponse deleteOrder(@PathVariable("orderId") long orderId) {
 		APIResponse response = new APIResponse();
 		try {

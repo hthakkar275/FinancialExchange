@@ -1,5 +1,7 @@
 package org.hemant.thakkar.financialexchange.repository;
 
+import java.util.List;
+
 import org.hemant.thakkar.financialexchange.domain.Product;
 
 public interface ProductRepository {
@@ -8,5 +10,6 @@ public interface ProductRepository {
 	Product getProduct(long productId);
 	Product getProduct(String symbol);
 	int getCount();
+	List<Product> getProducts();
 }
 

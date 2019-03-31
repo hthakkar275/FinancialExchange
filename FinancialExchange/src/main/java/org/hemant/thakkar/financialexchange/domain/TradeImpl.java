@@ -3,11 +3,9 @@ package org.hemant.thakkar.financialexchange.domain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class TradeImpl implements Trade {
 
-	private static AtomicLong idGenerator = new AtomicLong(1);
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss.SSS");
 
 	private long id;
@@ -18,7 +16,6 @@ public class TradeImpl implements Trade {
 	private BigDecimal price;
 	
 	public TradeImpl() {
-		this.setId(idGenerator.getAndIncrement());
 		this.setTradeTime(LocalDateTime.now());
 	}
 	

@@ -26,13 +26,13 @@ public class ProductManagementController {
 	private ProductManagementService productManagmentService;
 	
 	@PostMapping(value = "/product/equity", produces = "application/json", consumes = "application/json")
-	public APIDataResponse<Equity> addEquity(@RequestBody ProductEntry productEntry)  {
-		APIDataResponse<Equity> response = new APIDataResponse<>();
+	public APIDataResponse<Long> addEquity(@RequestBody ProductEntry productEntry)  {
+		APIDataResponse<Long> response = new APIDataResponse<>();
 		try {
-			Equity equity = (Equity) productManagmentService.addProduct(productEntry);
+			long productId = productManagmentService.addProduct(productEntry);
 			response.setSuccess(true);
 			response.setInfoMessage(ResultCode.PRODUCT_ADDED.getMessage());
-			response.setData(equity);
+			response.setData(productId);
 			response.setResponseCode(ResultCode.PRODUCT_ADDED.getCode());
 		} catch (ExchangeException ee) {
 			response.setErrorMessage(ee.getMessage());

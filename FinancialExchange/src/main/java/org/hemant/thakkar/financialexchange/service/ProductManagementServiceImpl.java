@@ -18,7 +18,7 @@ public class ProductManagementServiceImpl implements ProductManagementService {
 	ProductRepository productRepository;
 	
 	@Override
-	public Product addProduct(ProductEntry productEntry) throws ExchangeException {
+	public long addProduct(ProductEntry productEntry) throws ExchangeException {
 		Product product = null;
 		if (productEntry.getProductType().equals("EQUITY")) {
 			product = new Equity();
@@ -28,7 +28,7 @@ public class ProductManagementServiceImpl implements ProductManagementService {
 		} else {
 			throw new ExchangeException(ResultCode.UNSUPPORTED_ENTITY);
 		}
-		return product;
+		return product.getId();
 	}
 
 	@Override

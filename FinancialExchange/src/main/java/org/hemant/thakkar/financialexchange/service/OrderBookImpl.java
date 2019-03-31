@@ -13,42 +13,37 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Order;
-import org.hemant.thakkar.financialexchange.domain.OrderState;
 import org.hemant.thakkar.financialexchange.domain.OrderStatus;
 import org.hemant.thakkar.financialexchange.domain.OrderType;
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.Side;
 import org.hemant.thakkar.financialexchange.domain.Trade;
 import org.hemant.thakkar.financialexchange.domain.TradeImpl;
+import org.hemant.thakkar.financialexchange.repository.OrderRepository;
+import org.hemant.thakkar.financialexchange.repository.TradeRepository;
 
 public class OrderBookImpl implements OrderBook {
 	private static BigDecimal TWO = new BigDecimal("2.0");
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss.SSS");
 	
+	private OrderRepository orderRepository;
+	private TradeRepository tradeRepository;
 	private Product product;
-	private List<Trade> tape = new ArrayList<Trade>();
 	private List<Order> orders = new ArrayList<Order>();
 	private BigDecimal tickSize;
 	
-	public OrderBookImpl() {
-		
-	}
-	
-	public OrderBookImpl(Product product) {
-		this(new BigDecimal("0.01"), product);
+	public OrderBookImpl(Product product, OrderRepository orderRepository, 
+			TradeRepository tradeRepository) {
+		this(new BigDecimal("0.01"), product, orderRepository, tradeRepository);
 	}
 
-	public OrderBookImpl(BigDecimal tickSize, Product product) {
+	public OrderBookImpl(BigDecimal tickSize, Product product, OrderRepository orderRepository, 
+			TradeRepository tradeRepository) {
 		this.tickSize = tickSize;
 		this.setProduct(product);
-		this.reset();
+		this.orderRepository = orderRepository;
+		this.tradeRepository = tradeRepository;
 	}
-	
-	public void reset() {
-		tape.clear();
-		orders.clear();
-	}
-	
 	
 	/**
 	 * Clips price according to tickSize
@@ -63,9 +58,7 @@ public class OrderBookImpl implements OrderBook {
 	}
 	
 	
-	public OrderState processOrder(Order incomingOrder, boolean verbose) {
-		OrderState oReport;
-		
+	public void processOrder(Order incomingOrder) {		
 		if (incomingOrder.getQuantity() <= 0 ) {
 			throw new IllegalArgumentException("processOrder() given qty <= 0");
 		}
@@ -78,16 +71,14 @@ public class OrderBookImpl implements OrderBook {
 		if (incomingOrder.getType() == OrderType.LIMIT) {
 			BigDecimal clippedPrice = clipPrice(incomingOrder.getPrice());
 			incomingOrder.setPrice(clippedPrice);
-			oReport = processLimitOrder(incomingOrder, verbose);
+			processLimitOrder(incomingOrder);
 		} else {
-			oReport = processMarketOrder(incomingOrder, verbose);
+			processMarketOrder(incomingOrder);
 		}
-		return oReport;
 	}
 	
 	
-	private OrderState processMarketOrder(Order incomingOrder, boolean verbose) {
-		ArrayList<Trade> trades = new ArrayList<Trade>();
+	private void processMarketOrder(Order incomingOrder) {
 		Side side = incomingOrder.getSide();
 		int qtyRemaining = incomingOrder.getQuantity();
 		if (side == Side.BUY) {
@@ -100,8 +91,8 @@ public class OrderBookImpl implements OrderBook {
 				// Find the best offer to match the buy order 
 				// That would be to find the sell orders asking for smallest price.
 				//List<Order> ordersAtMinPrice = offers.stream().sorted(Comparators.)
-				qtyRemaining = processOrderList(trades, offersByBestPrice, qtyRemaining,
-												incomingOrder, verbose);
+				qtyRemaining = processOrderList(offersByBestPrice, qtyRemaining,
+												incomingOrder);
 			}
 		} else if (side == Side.SELL) {
 			List<Order> bidsByBestPrice = this.orders.stream()
@@ -114,31 +105,25 @@ public class OrderBookImpl implements OrderBook {
 				// Find the best offer to match the buy order 
 				// That would be to find the sell orders asking for smallest price.
 				//List<Order> ordersAtMinPrice = offers.stream().sorted(Comparators.)
-				qtyRemaining = processOrderList(trades, bidsByBestPrice, qtyRemaining,
-												incomingOrder, verbose);
+				qtyRemaining = processOrderList(bidsByBestPrice, qtyRemaining,
+												incomingOrder);
 			}
 		} else {
 			throw new IllegalArgumentException("order neither market nor limit: " + 
 				    						    side);
 		}
-		if (qtyRemaining < incomingOrder.getQuantity()) {
-			if (qtyRemaining == 0) {
-				incomingOrder.setStatus(OrderStatus.FILLED);
-			} else {
-				incomingOrder.setStatus(OrderStatus.PARTIALLY_FILLED);
-			}
+		if (incomingOrder.getTradedQantity() > 0 && incomingOrder.getTradedQantity() < incomingOrder.getQuantity()) {
+			incomingOrder.setStatus(OrderStatus.PARTIALLY_FILLED);
+		} else if (incomingOrder.getTradedQantity() == incomingOrder.getQuantity()) {
+			incomingOrder.setStatus(OrderStatus.FILLED);
 		} else {
 			incomingOrder.setStatus(OrderStatus.NOT_FILLED);
 		}
-		OrderState report = new OrderState(trades, false);
-
-		return  report;
+		orderRepository.saveOrder(incomingOrder);
 	}
 	
 	
-	private OrderState processLimitOrder(Order incomingOrder, boolean verbose) {
-		boolean orderInBook = false;
-		ArrayList<Trade> trades = new ArrayList<Trade>();
+	private void processLimitOrder(Order incomingOrder) {
 		int qtyRemaining = incomingOrder.getQuantity();
 	
 		List<Order> tradableOrders = this.orders.stream()
@@ -156,45 +141,33 @@ public class OrderBookImpl implements OrderBook {
 
 		while ((tradableOrders.size() > 0) && 
 				(qtyRemaining > 0)) {
-			qtyRemaining = processOrderList(trades, tradableOrders, qtyRemaining,
-											incomingOrder, verbose);
+			qtyRemaining = processOrderList(tradableOrders, qtyRemaining, incomingOrder);
 		}
 		
 		List<Order> tradedOrders = orders.stream()
-				.filter(o -> o.getQuantity() == 0)
+				.filter(o -> o.getBookedQuantity() == 0)
 				.collect(Collectors.toList());
+		tradedOrders.stream().forEach(o -> orders.remove(o)); 
 		
-		synchronized(orders) {
-			tradedOrders.stream().forEach(o -> orders.remove(o));
-		}
-		
-		// If volume remains, add order to book
-		if (qtyRemaining > 0) {
-			incomingOrder.setQuantity(qtyRemaining);
-			synchronized(orders) {
-				this.orders.add(incomingOrder);
-			}
-			orderInBook = true;
-			if (incomingOrder.getQuantity() > qtyRemaining) {
-				incomingOrder.setStatus(OrderStatus.PARTIALLY_BOOKED_FILLED);
-			} else {
-				incomingOrder.setStatus(OrderStatus.BOOKED);
-			}
-		} else {
-			orderInBook = false;
+		incomingOrder.setBookedQuantity(incomingOrder.getQuantity() - incomingOrder.getTradedQantity());
+		if (incomingOrder.getTradedQantity() > 0 && incomingOrder.getBookedQuantity() > 0) {
+			incomingOrder.setStatus(OrderStatus.PARTIALLY_BOOKED_FILLED);
+		} else if (incomingOrder.getTradedQantity() == 0 && incomingOrder.getBookedQuantity() > 0) {
+			incomingOrder.setStatus(OrderStatus.BOOKED);
+		} else if (incomingOrder.getTradedQantity() == incomingOrder.getQuantity()) {
 			incomingOrder.setStatus(OrderStatus.FILLED);
+		} else {
+			incomingOrder.setStatus(OrderStatus.UNKNOWN);
 		}
-		OrderState report = new OrderState(trades, orderInBook);
-		if (orderInBook) {
-			report.setOrder(incomingOrder);
+		if (incomingOrder.getBookedQuantity() > 0) {
+			this.orders.add(incomingOrder);
 		}
-		return report;
+		orderRepository.saveOrder(incomingOrder);
+
 	}
 	
 	
-	private int processOrderList(ArrayList<Trade> trades, List<Order> tradableOrders,
-								int qtyRemaining, Order incomingOrder,
-								boolean verbose) {
+	private int processOrderList(List<Order> tradableOrders, int qtyRemaining, Order incomingOrder) {
 		Iterator<Order> iterator = tradableOrders.iterator();
 		
 		while ((iterator.hasNext()) && (qtyRemaining > 0)) {
@@ -202,15 +175,17 @@ public class OrderBookImpl implements OrderBook {
 			Order headOrder = iterator.next();
 			if (qtyRemaining < headOrder.getQuantity()) {
 				qtyTraded = qtyRemaining;
-				headOrder.setQuantity(headOrder.getQuantity() - qtyRemaining);
-				headOrder.setEntryTime(LocalDateTime.now());
 				qtyRemaining = 0;
+				headOrder.setStatus(OrderStatus.PARTIALLY_BOOKED_FILLED);
 			} else {
 				qtyTraded = headOrder.getQuantity();
-				headOrder.setQuantity(0);
 				qtyRemaining -= qtyTraded;
+				headOrder.setStatus(OrderStatus.FILLED);
 				iterator.remove();
 			}
+			headOrder.setTradedQuantity(headOrder.getTradedQantity() + qtyTraded);
+			headOrder.setBookedQuantity(headOrder.getBookedQuantity() - qtyTraded);
+			incomingOrder.setTradedQuantity(incomingOrder.getTradedQantity() + qtyTraded);
 			Trade trade = new TradeImpl();
 			if (incomingOrder.getSide() == Side.SELL) {
 				trade.setSeller(incomingOrder);
@@ -221,11 +196,9 @@ public class OrderBookImpl implements OrderBook {
 			}
 			trade.setPrice(headOrder.getPrice());
 			trade.setQuantity(qtyTraded);
-			trades.add(trade);
-			this.tape.add(trade);
-			if (verbose) {
-				System.out.println(trade);
-			}
+			tradeRepository.saveTrade(trade);
+			orderRepository.saveOrder(headOrder);
+			System.out.println(trade);
 		}
 		return qtyRemaining;
 	}
@@ -368,15 +341,8 @@ public class OrderBookImpl implements OrderBook {
 				.map(o -> o.toString())
 				.reduce("", (a, b) -> a + "\n    " + b);
 		message.append(offers + "\n");
-		message.append("   ----------- Trades ----------   \n");
-		this.tape.stream().forEach(o -> message.append(tape.toString() + "\n"));
 		message.append("---------------------------------\n");
 		return message.toString();
-	}
-
-
-	public List<Trade> getTape() {
-		return tape;
 	}
 
 	public Product getProduct() {

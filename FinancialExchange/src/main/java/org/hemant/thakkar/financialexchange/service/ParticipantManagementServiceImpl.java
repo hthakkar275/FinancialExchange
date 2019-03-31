@@ -18,7 +18,7 @@ public class ParticipantManagementServiceImpl implements ParticipantManagementSe
 	ParticipantRepository participantRepository;
 
 	@Override
-	public Participant addParticipant(ParticipantEntry participantEntry) throws ExchangeException {
+	public long addParticipant(ParticipantEntry participantEntry) throws ExchangeException {
 		Participant participant = null;
 		if (participantEntry.getParticipantType().equals("BROKER")) {
 			participant = new Broker();
@@ -27,7 +27,7 @@ public class ParticipantManagementServiceImpl implements ParticipantManagementSe
 		} else {
 			throw new ExchangeException(ResultCode.UNSUPPORTED_ENTITY);
 		}
-		return participant;
+		return participant.getId();
 	}
 
 	@Override

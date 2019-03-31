@@ -25,13 +25,14 @@ public class OrderManagementController {
 	private OrderManagementService orderManagementService;
 	
 	@PostMapping(value = "/order", produces = "application/json", consumes = "application/json")
-	public APIResponse acceptNewOrder(@RequestBody OrderEntry orderEntry) {
-		APIResponse response = new APIResponse();
+	public APIDataResponse<Long> acceptNewOrder(@RequestBody OrderEntry orderEntry) {
+		APIDataResponse<Long> response = new APIDataResponse<Long>();
 		try {
-			orderManagementService.acceptNewOrder(orderEntry);
+			long orderId = orderManagementService.acceptNewOrder(orderEntry);
 			response.setSuccess(true);
 			response.setInfoMessage(ResultCode.ORDER_ACCEPTED.getMessage());
 			response.setResponseCode(ResultCode.ORDER_ACCEPTED.getCode());
+			response.setData(orderId);
 		} catch (ExchangeException ee) {
 			response.setErrorMessage(ee.getMessage());
 			response.setResponseCode(ee.getErrorCode());
@@ -43,7 +44,7 @@ public class OrderManagementController {
 
 	} 
 	
-	@PutMapping(value = "/orderBookUpdate/{orderId}", produces = "application/json", consumes = "application/json")
+	@PutMapping(value = "/order/{orderId}", produces = "application/json", consumes = "application/json")
 	public APIResponse updateOrderFromOrderBook(@PathVariable("orderId") long orderId,
 			@RequestBody OrderEntry orderEntry) {
 		APIResponse response = new APIResponse();

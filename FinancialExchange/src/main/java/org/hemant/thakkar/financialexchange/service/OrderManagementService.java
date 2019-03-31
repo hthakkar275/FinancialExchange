@@ -8,7 +8,7 @@ import java.util.List;
 import org.hemant.thakkar.financialexchange.domain.ExchangeException;
 
 public interface OrderManagementService {
-	void acceptNewOrder(OrderEntry orderEntry) throws ExchangeException;
+	long acceptNewOrder(OrderEntry orderEntry) throws ExchangeException;
 	void cancelOrder(long orderId) throws ExchangeException;
 	OrderReport getOrderStatus(long orderId) throws ExchangeException;
 	void updateFromOrderBook(long orderId, OrderEntry orderEntry) throws ExchangeException;

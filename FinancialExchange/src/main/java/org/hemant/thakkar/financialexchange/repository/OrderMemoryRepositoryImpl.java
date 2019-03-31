@@ -3,6 +3,7 @@ package org.hemant.thakkar.financialexchange.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Order;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service("orderMemoryRepositoryImpl")
 public class OrderMemoryRepositoryImpl implements OrderRepository {
 
+	private static AtomicLong idGenerator = new AtomicLong(1);
 	Map<Long, Order> orders;
 	
 	public OrderMemoryRepositoryImpl() {
@@ -19,6 +21,9 @@ public class OrderMemoryRepositoryImpl implements OrderRepository {
 	
 	@Override
 	public long saveOrder(Order order) {
+		if (order.getId() == 0) {
+			order.setId(idGenerator.getAndIncrement());
+		}
 		orders.put(order.getId(), order);
 		return order.getId();
 	}

@@ -5,7 +5,7 @@ import org.hemant.thakkar.financialexchange.domain.Product;
 import org.hemant.thakkar.financialexchange.domain.ProductEntry;
 
 public interface ProductManagementService {
-	Product addProduct(ProductEntry productEntry) throws ExchangeException;
+	long addProduct(ProductEntry productEntry) throws ExchangeException;
 	Product getProduct(String symbol) throws ExchangeException;
 	Product getProduct(long productId) throws ExchangeException;
 	void deleteProduct(long productId) throws ExchangeException;

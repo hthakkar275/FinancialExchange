@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class OrderEntry {
 
+	private long id;
 	private Side side;
 	private int quantity;
 	private BigDecimal price;
@@ -13,6 +14,12 @@ public class OrderEntry {
 	private long productId;
 	private long participantId;
 	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
 	public Side getSide() {
 		return side;
 	}

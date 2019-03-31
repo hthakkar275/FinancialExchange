@@ -5,10 +5,10 @@ import org.hemant.thakkar.financialexchange.domain.OrderBookState;
 import org.hemant.thakkar.financialexchange.domain.OrderEntry;
 
 public interface OrderBookService {
-	OrderBook getOrderBook(long productId);
+	OrderBook getOrderBook(long productId) throws ExchangeException;
 	void deleteOrderBook(long productId);
 	void addOrder(OrderEntry orderEntry) throws ExchangeException;
-	void cancelOrder(long orderId);
+	void cancelOrder(long orderId) throws ExchangeException;
 	OrderBookState getOrderBookMontage(long productId);
 }
 

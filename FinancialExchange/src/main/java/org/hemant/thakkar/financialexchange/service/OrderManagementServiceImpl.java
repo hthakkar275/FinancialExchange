@@ -68,10 +68,12 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 	}
 
 	@Override
-	public void acceptNewOrder(OrderEntry orderEntry) throws ExchangeException {
+	public long acceptNewOrder(OrderEntry orderEntry) throws ExchangeException {
 		Order order = createOrder(orderEntry);
-		orderRepository.saveOrder(order);
+		long orderId = orderRepository.saveOrder(order);
+		orderEntry.setId(orderId);
 		orderBookService.addOrder(orderEntry);
+		return order.getId();
 	}
 
 	private Order createOrder(OrderEntry orderEntry) throws ExchangeException {
@@ -115,6 +117,7 @@ public class OrderManagementServiceImpl implements OrderManagementService {
 		orderReport.setStatus(order.getStatus());
 		orderReport.setTradedQuantity(order.getTradedQantity());
 		orderReport.setType(order.getType());
+		orderReport.setPrice(order.getPrice());
 		List<Long> trades = tradeRepository.getTrades(order.getId())
 				.stream()
 				.map(Trade::getId)

@@ -8,5 +8,6 @@ public enum OrderStatus {
 	FILLED,
 	CANCELLED,
 	PARTIALLY_CANCELLED,
-	REJECTED
+	REJECTED,
+	UNKNOWN
 } 

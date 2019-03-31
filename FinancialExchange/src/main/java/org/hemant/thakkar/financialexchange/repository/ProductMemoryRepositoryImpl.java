@@ -1,7 +1,9 @@
 package org.hemant.thakkar.financialexchange.repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.hemant.thakkar.financialexchange.domain.Product;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,12 @@ public class ProductMemoryRepositoryImpl implements ProductRepository {
 			.filter(p -> p.getSymbol().equals(symbol))
 			.findFirst().orElse(null);
 		return product;
+	}
+
+	@Override
+	public List<Product> getProducts() {
+		List<Product> productSet = products.values().stream().collect(Collectors.toList());
+		return productSet;
 	}
 
 }

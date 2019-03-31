@@ -5,7 +5,7 @@ import org.hemant.thakkar.financialexchange.domain.Participant;
 import org.hemant.thakkar.financialexchange.domain.ParticipantEntry;
 
 public interface ParticipantManagementService {
-	Participant addParticipant(ParticipantEntry participantEntry) throws ExchangeException;
+	long addParticipant(ParticipantEntry participantEntry) throws ExchangeException;
 	Participant getParticipant(long participantId) throws ExchangeException;
 	void deleteParticipant(long participantId) throws ExchangeException;
 	Participant updateParticipant(long participantId, ParticipantEntry participantEntry) throws ExchangeException;

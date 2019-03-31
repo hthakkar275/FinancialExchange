@@ -25,13 +25,13 @@ public class ParticipantManagementController {
 	private ParticipantManagementService participantManagmentService;
 	
 	@PostMapping(value = "/participant/broker", produces = "application/json", consumes = "application/json")
-	public APIDataResponse<Broker> addBroker(@RequestBody ParticipantEntry participantEntry)  {
-		APIDataResponse<Broker> response = new APIDataResponse<>();
+	public APIDataResponse<Long> addBroker(@RequestBody ParticipantEntry participantEntry)  {
+		APIDataResponse<Long> response = new APIDataResponse<>();
 		try {
-			Broker participant = (Broker) participantManagmentService.addParticipant(participantEntry);
+			long participantId = participantManagmentService.addParticipant(participantEntry);
 			response.setSuccess(true);
 			response.setInfoMessage(ResultCode.PARTICIPANT_ADDED.getMessage());
-			response.setData(participant);
+			response.setData(participantId);
 			response.setResponseCode(ResultCode.PARTICIPANT_ADDED.getCode());
 		} catch (ExchangeException ee) {
 			response.setErrorMessage(ee.getMessage());

@@ -1,6 +1,5 @@
 package org.hemant.thakkar.financialexchange.service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -8,15 +7,11 @@ import org.hemant.thakkar.financialexchange.domain.ExchangeException;
 import org.hemant.thakkar.financialexchange.domain.Order;
 import org.hemant.thakkar.financialexchange.domain.OrderBookState;
 import org.hemant.thakkar.financialexchange.domain.OrderEntry;
-import org.hemant.thakkar.financialexchange.domain.OrderImpl;
-import org.hemant.thakkar.financialexchange.domain.OrderLongevity;
-import org.hemant.thakkar.financialexchange.domain.OrderReport;
-import org.hemant.thakkar.financialexchange.domain.Participant;
 import org.hemant.thakkar.financialexchange.domain.Product;
-import org.hemant.thakkar.financialexchange.domain.ResultCode;
 import org.hemant.thakkar.financialexchange.repository.OrderRepository;
 import org.hemant.thakkar.financialexchange.repository.ParticipantRepository;
 import org.hemant.thakkar.financialexchange.repository.ProductRepository;
+import org.hemant.thakkar.financialexchange.repository.TradeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -25,9 +20,13 @@ import org.springframework.stereotype.Service;
 public class OrderBookServiceImpl implements OrderBookService {
 
 	@Autowired
-	@Qualifier("orderManagementServiceImpl")
-	private OrderManagementServiceImpl orderManagementServiceImpl;
+	@Qualifier("orderMemoryRepositoryImpl")
+	private OrderRepository orderRepository;
 	
+	@Autowired
+	@Qualifier("tradeMemoryRepositoryImpl")
+	private TradeRepository tradeRepository;
+
 	@Autowired
 	@Qualifier("productMemoryRepositoryImpl")
 	private ProductRepository productRepository;
@@ -42,88 +41,37 @@ public class OrderBookServiceImpl implements OrderBookService {
 		this.orderBooks = new ConcurrentHashMap<Long, OrderBook>();
 	}
 	
-	public OrderBook getOrderBook(long productId) {
+	public OrderBook getOrderBook(long productId) throws ExchangeException {
 		OrderBook orderBook = null;
-			orderBook = orderBooks.get(productId);
-			if (orderBook == null) {
-				final OrderBook newOrderBook = new OrderBookImpl(productRepository.getProduct(productId));
-				List<OrderReport> orders = orderManagementServiceImpl.getOrdersForProduct(productId);
-					orders.stream().map(o -> {
-						try {
-							return createOrder(o);
-						} catch (ExchangeException e) {
-							throw e;
-						}
-					}).forEach(o -> newOrderBook.processOrder(o, false));
-				orderBooks.put(productId, newOrderBook);
-				orderBook = newOrderBook;
-			}
+		orderBook = orderBooks.get(productId);
+		if (orderBook == null) {
+			orderBook = new OrderBookImpl(productRepository.getProduct(productId), 
+					orderRepository, tradeRepository);
+			orderBooks.put(productId, orderBook);
+		}
 		return orderBook;
 	}
-
+		
 	public void deleteOrderBook(long productId) {
 		orderBooks.remove(productId);
 	}
 
 	public void addOrder(OrderEntry orderEntry) throws ExchangeException {
-		Order order = createOrder(orderEntry);
+		Order order = orderRepository.getOrder(orderEntry.getId());
 		OrderBook orderBook = getOrderBook(order.getProduct().getId());
-		orderBook.processOrder(order, false);
+		orderBook.processOrder(order);
 	}
 
-	public void cancelOrder(Order order) {
-		OrderBook orderBook = getOrderBook(order.getProduct().getId());
-		orderBook.cancelOrder(order.getId());
-	}
-
-	private Order createOrder(OrderEntry orderEntry) throws ExchangeException {
-		Product product = productRepository.getProduct(orderEntry.getProductId());
-		if (product == null) {
-			throw new ExchangeException(ResultCode.PRODUCT_NOT_FOUND);
-		}
-		
-		Participant participant = participantRepository.getParticipant(orderEntry.getParticipantId());
-		if (participant == null) {
-			throw new ExchangeException(ResultCode.PARTICIPANT_NOT_FOUND);
-		}
-		
-		Order order = new OrderImpl();
-		order.setProduct(product);
-		order.setParticipant(participant);
-		order.setType(orderEntry.getType());
-		order.setLongevity(OrderLongevity.DAY);
-		order.setSide(orderEntry.getSide());
-		order.setQuantity(orderEntry.getQuantity());
-		order.setPrice(orderEntry.getPrice());
-		return order;
-	}
-
-	private Order createOrder(OrderReport orderReport) throws ExchangeException {
-		Product product = productRepository.getProduct(orderReport.getProductId());
-		if (product == null) {
-			throw new ExchangeException(ResultCode.PRODUCT_NOT_FOUND);
-		}
-		
-		Participant participant = participantRepository.getParticipant(orderReport.getParticipantId());
-		if (participant == null) {
-			throw new ExchangeException(ResultCode.PARTICIPANT_NOT_FOUND);
-		}
-		
-		Order order = new OrderImpl();
-		order.setProduct(product);
-		order.setParticipant(participant);
-		order.setType(orderReport.getType());
-		order.setLongevity(OrderLongevity.DAY);
-		order.setSide(orderReport.getSide());
-		order.setQuantity(orderReport.getOriginalQuantity());
-		order.setPrice(orderReport.getPrice());
-		return order;
+	public void cancelOrder(Order order) throws ExchangeException {
+		// TODO
 	}
 
 	@Override
-	public void cancelOrder(long orderId) {
-		// TODO Auto-generated method stub
-		
+	public void cancelOrder(long orderId) throws ExchangeException {
+		Order order = orderRepository.getOrder(orderId);
+		Product product = order.getProduct();
+		OrderBook orderBook = getOrderBook(product.getId());
+		orderBook.cancelOrder(orderId);		
 	}
 
 	@Override
